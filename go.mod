@@ -1,1 +1,1 @@
-module github.com/as/uuid
+module github.com/cbsinteractive/mc-uuid

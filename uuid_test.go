@@ -1,22 +1,25 @@
-package uuid
+package uuid_test
 
 import (
 	"math"
 	"testing"
 	"time"
+
+	uuid "github.com/cbsinteractive/mc-uuid"
 )
 
 var (
 	N = 1024 * 1024
+	h = [...]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
 )
 
 func TestV4(t *testing.T) {
 	saw := make(map[string]bool)
-	t.Log(V4())
+	t.Log(uuid.V4())
 	for i := 0; i < N; i++ {
-		saw[V4()] = true
+		saw[uuid.V4()] = true
 	}
-	t.Log(V4())
+	t.Log(uuid.V4())
 	if len(saw) != N {
 		t.Fatalf("have %d distinct, want %d", len(saw), N)
 	}
@@ -29,7 +32,7 @@ func TestValid(t *testing.T) {
 		"BB1C05DD-C584-7B82-32E9-94D689898560",
 		"BB1C05DD-CCCC-CCCC-CCCC-DDDDEEEEFFFF",
 	} {
-		if !Valid(s) {
+		if !uuid.Valid(s) {
 			t.Fatalf("%d: input not valid: %q", i, s)
 		}
 	}
@@ -53,7 +56,7 @@ func TestValid(t *testing.T) {
 		"000-0000-0000-0000-0000-000000000000-",
 		"-000-0000-0000-0000-0000-000000000000",
 	} {
-		if Valid(s) {
+		if uuid.Valid(s) {
 			t.Fatalf("%d: false positive: %q", i, s)
 		}
 	}
@@ -65,7 +68,7 @@ func TestRace(t *testing.T) {
 	hammer := func() {
 		var u string
 		for i := 0; i < 1024; i++ {
-			u = V4()
+			u = uuid.V4()
 			if u == "" {
 				panic("empty uuid")
 			}
@@ -82,11 +85,11 @@ func TestRace(t *testing.T) {
 	}
 	var uuids = []string{}
 	for i := 0; i < N; i++ {
-		uuids = append(uuids, V4())
+		uuids = append(uuids, uuid.V4())
 	}
 	time.Sleep(time.Second * 2)
 	for i := 0; i < N; i++ {
-		uuids = append(uuids, V4())
+		uuids = append(uuids, uuid.V4())
 	}
 	checkDistribution(t, uuids...)
 }
@@ -94,7 +97,7 @@ func TestRace(t *testing.T) {
 func TestProbabilityDistribution(t *testing.T) {
 	var uuids = []string{}
 	for i := 0; i < N; i++ {
-		uuids = append(uuids, V4())
+		uuids = append(uuids, uuid.V4())
 	}
 	checkDistribution(t, uuids...)
 }
@@ -104,7 +107,7 @@ func checkDistribution(t *testing.T, uuids ...string) {
 	const expected = 1.0 / 16.0 // ~0.0625
 	var ctr [256]int
 	for i := 0; i < N; i++ {
-		u := []byte(V4())
+		u := []byte(uuid.V4())
 		if len(u) != 36 {
 			t.Fatal("bad length")
 		}
@@ -130,7 +133,7 @@ func checkDistribution(t *testing.T, uuids ...string) {
 
 func BenchmarkV4(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		_ = V4()
+		_ = uuid.V4()
 	}
 }
 func TestV4Parallel(t *testing.T) {
